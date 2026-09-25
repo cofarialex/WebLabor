@@ -1,0 +1,28 @@
+/* 2. Alap reset és dobozmodell */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+/* 3. Színek és tipográfia */
+body {
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  padding: 20px;
+}
+
+h1 {
+  color: royalblue;
+  margin-bottom: 12px;
+}
+
+h2 {
+  color: seagreen;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
