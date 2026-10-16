@@ -1,0 +1,152 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #0f172a;
+  color: #f1f5f9;
+  font-family: Arial, sans-serif;
+}
+
+.app {
+  width: 100%;
+  max-width: 500px;
+  margin: 16px;
+  padding: 30px;
+  background: #1e293b;
+  border-radius: 12px;
+  text-align: center;
+  box-sizing: border-box;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+  color: #38bdf8;
+}
+
+button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #334155;
+  color: #f1f5f9;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.1s;
+}
+
+button:hover:not(:disabled) {
+  background: #0e7490;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  cursor: default;
+}
+
+/* Helyes / rossz válasz */
+button.correct {
+  background: #10b981;
+}
+
+button.wrong {
+  background: #ef4444;
+}
+
+/* Nehézségi gombok */
+button.level.easy { background: #10b981; }
+button.level.medium { background: #f59e0b; }
+button.level.hard { background: #ef4444; }
+button.level:hover { filter: brightness(1.15); }
+
+/* Felső információs sor */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0 4px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* Progress bar-ok */
+.bar {
+  height: 10px;
+  background: #0f172a;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 1s linear, background 0.3s;
+}
+
+.bar-fill.progress { background: #38bdf8; transition: width 0.4s ease; }
+.bar-fill.timer { background: #10b981; }
+.bar-fill.timer.low { background: #ef4444; }
+
+/* Beúszó animáció */
+.fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Név mentése */
+.save-row {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.save-row input {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 2px solid #334155;
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+.save-row input:focus {
+  outline: none;
+  border-color: #38bdf8;
+}
+
+.save-row button {
+  width: auto;
+  margin: 0;
+  padding: 10px 16px;
+  background: #0e7490;
+}
+
+/* Ponttábla */
+.leaderboard {
+  text-align: left;
+  padding-left: 20px;
+}
+
+.leaderboard li {
+  margin: 6px 0;
+}
+
+.leaderboard li span:last-child {
+  margin-left: 8px;
+}
+
+/* Szöveg színek */
+.muted { color: #94a3b8; font-size: 14px; }
+.danger { color: #f87171; }
+.success { color: #34d399; }
