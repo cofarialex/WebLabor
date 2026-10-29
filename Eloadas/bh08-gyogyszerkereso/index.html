@@ -39,9 +39,26 @@ const allapot = document.getElementById('allapot');
 // megérkezésekor már van újabb keresés, a régi (elavult) választ eldobjuk.
 let utolsoKeres = 0;
 
-input.addEventListener('input', () => {
-  const q = input.value.trim();
+// debounce: csak akkor hívja meg fn-t, ha ms ideig nem jött újabb esemény.
+// Gépelés közben így nem indul kérés minden leütésre – csak a megállás után egy.
+function debounce(fn, ms) {
+  let idozito;
+  return (...args) => {
+    clearTimeout(idozito);
+    idozito = setTimeout(() => fn(...args), ms);
+  };
+}
+
+input.addEventListener('input', debounce(() => keres(input.value.trim()), 300));
+
+function keres(q) {
   const id = ++utolsoKeres;
+  if (q === '') {                 // üres mezőre nem kérdezzük a szervert, csak ürítünk
+    document.getElementById('talalatok').textContent = '';
+    document.getElementById('osszeg').textContent = '0';
+    allapot.textContent = '';
+    return;
+  }
   allapot.textContent = 'Keresés…';
   try {
     fakeFetch(q).then(nevek => {
@@ -51,7 +68,7 @@ input.addEventListener('input', () => {
   } catch (e) {
     allapot.textContent = 'Hiba: ' + e.message;
   }
-});
+}
 
 function megjelenit(nevek) {
   const ul = document.getElementById('talalatok');
