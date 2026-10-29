@@ -106,6 +106,31 @@ switch ($m) {
         }
         break;
 
+    // ---------- UPDATE: meglévő jegyzet szerkesztése ----------
+    case 'szerkeszt':
+        // Nem létező (vagy nem egész) azonosító → 404, NEM egy üres űrlap 200-zal:
+        // különben a felhasználó azt hinné, új jegyzetet ír.
+        if ($id === null) {
+            hiba(404, 'Nincs ilyen jegyzet.');
+        }
+        $stmt = db()->prepare('SELECT id, cim, tartalom FROM jegyzet WHERE id = ?');
+        $stmt->execute([$id]);
+        $jegyzet = $stmt->fetch() ?: hiba(404, 'Nincs ilyen jegyzet.');
+
+        if ($post) {
+            $jegyzet = urlap_adatok() + $jegyzet;   // az id megmarad, a cím és a tartalom az újak
+            $hibak = validal($jegyzet);
+            if (!$hibak) {
+                // A WHERE id = ? NAGYON fontos: nélküle MINDEN jegyzet felülíródna!
+                db()->prepare('UPDATE jegyzet SET cim = ?, tartalom = ?, frissitve = CURRENT_TIMESTAMP WHERE id = ?')
+                    ->execute([$jegyzet['cim'], $jegyzet['tartalom'], $id]);
+                flash('Jegyzet mentve.');
+                redirect('jegyzetek.php');
+            }
+            http_response_code(422);
+        }
+        break;
+
     default:
         hiba(404, 'Ismeretlen oldal.');
 }
@@ -149,6 +174,10 @@ $uzenet = flash();
       <p><?= nl2br(e(mb_strimwidth($j['tartalom'], 0, 200, '…'))) ?></p>
       <footer>
         <small>Módosítva: <?= e(helyi_ido($j['frissitve'])) ?></small>
+        <span class="muveletek">
+          <!-- Szerkesztés: sima link, mert csak MEGJELENÍT (GET). -->
+          <a href="jegyzetek.php?m=szerkeszt&amp;id=<?= (int) $j['id'] ?>">Szerkesztés</a>
+        </span>
       </footer>
     </article>
   <?php endforeach; ?>
