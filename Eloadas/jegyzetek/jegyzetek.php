@@ -20,6 +20,17 @@
 declare(strict_types=1);
 
 require __DIR__ . '/db.php';
+require __DIR__ . '/csrf.php';
+
+// A munkamenet (session) a szerveren tárol adatot látogatónként (CSRF-token, flash).
+session_start([
+    'cookie_httponly' => true,   // JavaScript nem olvashatja a sütit
+    'cookie_samesite' => 'Lax',  // idegen oldalról indított POST-hoz nem küldi a böngésző
+    'use_strict_mode' => true,   // csak a szerver által kiadott azonosítót fogadja el
+]);
+
+const CIM_MAX      = 120;
+const TARTALOM_MAX = 20000;
 
 $metodus = $_SERVER['REQUEST_METHOD'];
 if (!in_array($metodus, ['GET', 'HEAD', 'POST'], true)) {
@@ -36,6 +47,38 @@ $m = is_string($_GET['m'] ?? null) ? $_GET['m'] : 'lista';
 $id = filter_var($_GET['id'] ?? $_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $id = $id === false ? null : $id;
 
+// Minden POST-nál először: tőlünk jött-e az űrlap? Ha nem → 403, itt megáll.
+if ($post) {
+    csrf_check();
+}
+
+// Az űrlap két mezője, levágott szóközökkel. Tömböt (cim[]=x) üres szövegnek veszünk.
+function urlap_adatok(): array
+{
+    return [
+        'cim'      => trim(is_string($_POST['cim'] ?? null) ? $_POST['cim'] : ''),
+        'tartalom' => trim(is_string($_POST['tartalom'] ?? null) ? $_POST['tartalom'] : ''),
+    ];
+}
+
+// Ugyanaz az ellenőrzés szolgálja ki az új és a szerkesztett jegyzetet (DRY: ne ismételd magad).
+// A HTML required/maxlength csak kényelmi funkció – a szerveren MINDIG újra ellenőrzünk.
+// mb_strlen: karaktereket számol (az "ő" 1 karakter, de 2 bájt – a strlen 2-t mondana).
+function validal(array $j): array
+{
+    $hibak = [];
+    if ($j['cim'] === '' || mb_strlen($j['cim']) > CIM_MAX) {
+        $hibak['cim'] = 'A cím 1–' . CIM_MAX . ' karakter legyen.';
+    }
+    if ($j['tartalom'] === '' || mb_strlen($j['tartalom']) > TARTALOM_MAX) {
+        $hibak['tartalom'] = 'A tartalom nem lehet üres (legfeljebb 20 000 karakter).';
+    }
+    return $hibak;
+}
+
+$hibak   = [];
+$jegyzet = ['id' => null, 'cim' => '', 'tartalom' => ''];
+
 switch ($m) {
     // ---------- READ: a lista, a legutóbb módosított elöl ----------
     case 'lista':
@@ -45,9 +88,29 @@ switch ($m) {
         )->fetchAll();
         break;
 
+    // ---------- CREATE: új jegyzet ----------
+    case 'uj':
+        if ($post) {
+            $jegyzet = urlap_adatok() + $jegyzet;
+            $hibak = validal($jegyzet);
+            if (!$hibak) {
+                // Prepared statement: a ? helyére az adatbázis teszi be az értéket, ADATKÉNT.
+                db()->prepare('INSERT INTO jegyzet (cim, tartalom) VALUES (?, ?)')
+                    ->execute([$jegyzet['cim'], $jegyzet['tartalom']]);
+                flash('Jegyzet létrehozva.');
+                redirect('jegyzetek.php');
+            }
+            // 422 Unprocessable Content: "értem a kérést, de a tartalma hibás".
+            // Ugyanazt az űrlapot rajzoljuk ki újra, a beírt szöveggel és a hibákkal.
+            http_response_code(422);
+        }
+        break;
+
     default:
         hiba(404, 'Ismeretlen oldal.');
 }
+
+$uzenet = flash();
 
 // Innentől HTML. Szabály: ami a felhasználótól jön, az CSAK e()-n keresztül kerülhet ki.
 // (Vigyázat: PHP-kommentben a kérdőjel + nagyobb-jel PÁROS lezárja a PHP-t,
@@ -58,20 +121,25 @@ switch ($m) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Jegyzeteim</title>
+  <title><?= $m === 'lista' ? 'Jegyzeteim' : ($m === 'uj' ? 'Új jegyzet' : 'Jegyzet szerkesztése') ?></title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
   <nav class="fejlec">
     <a href="jegyzetek.php">Jegyzeteim</a>
+    <a href="jegyzetek.php?m=uj" class="gomb">+ Új jegyzet</a>
   </nav>
+
+  <?php if ($uzenet): ?>
+    <p class="doboz ok" role="status"><?= e($uzenet) ?></p>
+  <?php endif; ?>
 
 <?php if ($m === 'lista'): ?>
   <h1>Jegyzeteim <span class="darab">(<?= count($jegyzetek) ?>)</span></h1>
 
   <?php if (!$jegyzetek): ?>
-    <p class="ures">Még nincs jegyzeted.</p>
+    <p class="ures">Még nincs jegyzeted – <a href="jegyzetek.php?m=uj">írd meg az elsőt</a>!</p>
   <?php endif; ?>
 
   <?php foreach ($jegyzetek as $j): ?>
@@ -85,6 +153,36 @@ switch ($m) {
     </article>
   <?php endforeach; ?>
 
+<?php else: ?>
+  <!-- Az új jegyzet és a szerkesztés UGYANAZ az űrlap: csak az action és a kezdőértékek mások. -->
+  <h1><?= $m === 'uj' ? 'Új jegyzet' : 'Jegyzet szerkesztése' ?></h1>
+
+  <?php if ($hibak): ?>
+    <p class="doboz hiba" role="alert">Nem sikerült menteni – javítsd a pirossal jelölt mezőket.</p>
+  <?php endif; ?>
+
+  <!-- Szerkesztésnél az id-nek az action-ben a helye: nélküle a mentés nem tudná, melyik jegyzetet írja felül. -->
+  <form method="post" class="urlap"
+        action="jegyzetek.php?m=<?= e($m) ?><?= $jegyzet['id'] ? '&amp;id=' . (int) $jegyzet['id'] : '' ?>">
+    <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+
+    <label for="cim">Cím</label>
+    <input id="cim" name="cim" maxlength="<?= CIM_MAX ?>" required
+           placeholder="pl. Kardiológia – EKG alapok"
+           value="<?= e($jegyzet['cim']) ?>"
+           <?= isset($hibak['cim']) ? 'aria-invalid="true" aria-describedby="cim-hiba"' : '' ?>>
+    <?php if (isset($hibak['cim'])): ?><p class="mezohiba" id="cim-hiba"><?= e($hibak['cim']) ?></p><?php endif; ?>
+
+    <label for="tartalom">Tartalom</label>
+    <textarea id="tartalom" name="tartalom" rows="10" maxlength="<?= TARTALOM_MAX ?>" required
+              <?= isset($hibak['tartalom']) ? 'aria-invalid="true" aria-describedby="tartalom-hiba"' : '' ?>><?= e($jegyzet['tartalom']) ?></textarea>
+    <?php if (isset($hibak['tartalom'])): ?><p class="mezohiba" id="tartalom-hiba"><?= e($hibak['tartalom']) ?></p><?php endif; ?>
+
+    <div class="gombsor">
+      <button type="submit">Mentés</button>
+      <a href="jegyzetek.php">Mégse</a>
+    </div>
+  </form>
 <?php endif; ?>
 </main>
 </body>

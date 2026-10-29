@@ -3,6 +3,8 @@
 //   db()        → kapcsolat az adatbázissal
 //   e()         → szöveg biztonságos kiírása HTML-be (XSS elleni védelem)
 //   helyi_ido() → az UTC-ben tárolt időpont átírása marosvásárhelyi időre
+//   flash()     → egyszer megjelenő üzenet ("Jegyzet létrehozva.") a következő oldalon
+//   redirect()  → 303-as átirányítás + kilépés (a PRG minta második fele)
 //   hiba()      → hibaoldal a megfelelő HTTP-státuszkóddal (403, 404, 405)
 declare(strict_types=1);
 
@@ -50,6 +52,28 @@ function helyi_ido(string $utc): string
 {
     $ido = new DateTimeImmutable($utc, new DateTimeZone('UTC'));
     return $ido->setTimezone(new DateTimeZone('Europe/Bucharest'))->format('Y.m.d. H:i');
+}
+
+// flash('szöveg') → eltesszük a munkamenetbe;
+// flash()         → kiolvassuk ÉS töröljük, így csak egyszer jelenik meg.
+function flash(?string $uzenet = null): ?string
+{
+    if ($uzenet !== null) {
+        $_SESSION['flash'] = $uzenet;
+        return null;
+    }
+    $u = $_SESSION['flash'] ?? null;
+    unset($_SESSION['flash']);
+    return $u;
+}
+
+// 303 See Other: "most kérd le ezt a címet GET-tel". Így az F5 (frissítés) csak
+// egy ártalmatlan GET-et ismétel meg, és nem küldi be újra az űrlapot.
+// A "never" visszatérési típus jelzi: ez a függvény sosem tér vissza.
+function redirect(string $hova): never
+{
+    header('Location: ' . $hova, true, 303);
+    exit;   // Fontos! Nélküle a szkript tovább futna, és kirajzolná az oldalt is.
 }
 
 // Hibaoldal a megfelelő státuszkóddal: a böngésző, a kereső és a curl is
