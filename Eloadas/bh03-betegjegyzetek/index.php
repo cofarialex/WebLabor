@@ -58,10 +58,12 @@ $sorok = $stmt->fetchAll();
 </form>
 <ul>
 <?php foreach ($sorok as $s): ?>
-  <li><b><?= htmlspecialchars($s['beteg']) ?></b>: <?= $s['szoveg'] ?>
+  <!-- Szabály: ami a felhasználótól jön, az CSAK e()-n keresztül kerülhet ki.
+       Sorrend: ELŐBB e(), UTÁNA nl2br() – fordítva a <br> is escape-elődne. -->
+  <li><b><?= e($s['beteg']) ?></b>: <?= nl2br(e($s['szoveg'])) ?>
       <!-- Törlés POST-űrlappal: a rejtett mezők viszik a jegyzet azonosítóját és a CSRF-tokent. -->
       <form method="post" style="display:inline">
-        <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
         <input type="hidden" name="torol" value="<?= (int) $s['id'] ?>">
         <button>Törlés</button>
       </form></li>
@@ -69,7 +71,7 @@ $sorok = $stmt->fetchAll();
 </ul>
 <h2>Új jegyzet</h2>
 <form method="post">
-  <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+  <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
   <label for="beteg">Beteg</label> <input id="beteg" name="beteg" required>
   <label for="szoveg">Jegyzet</label> <textarea id="szoveg" name="szoveg" required></textarea>
   <button>Mentés</button>
