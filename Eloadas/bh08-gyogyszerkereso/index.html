@@ -7,6 +7,8 @@
 <style>
   body { font: 16px system-ui, sans-serif; background: #fff; color: #1b2421; max-width: 600px; margin: auto; padding: 16px; }
   #allapot { color: #5b6b66; }
+  /* A kapcsológomb bekapcsolt állapota látszódjon is (nem csak a képernyőolvasónak). */
+  #frissit[aria-pressed="true"] { background: #0e7c66; color: #fff; }
 </style>
 </head>
 <body>
@@ -15,7 +17,7 @@
 <input id="q" autocomplete="off">
 <p id="allapot" aria-live="polite"></p>
 <ul id="talalatok"></ul>
-<button id="frissit" type="button">Automatikus frissítés</button>
+<button id="frissit" type="button" aria-pressed="false">Automatikus frissítés</button>
 <p>Találatok listaáron összesen: <output id="osszeg">0</output> lej</p>
 <script>
 const ADAT = ['Algopyrin', 'Aspirin', 'Amoxicillin', 'Augmentin', 'Algoflex', 'Betaloc', 'Cataflam', 'Cetirizin', 'Diclofenac'];
@@ -97,10 +99,23 @@ async function osszesit(nevek, id) {
   document.getElementById('osszeg').textContent = osszeg;
 }
 
-document.getElementById('frissit').addEventListener('click', () => {
-  setInterval(() => {
-    fakeFetch(input.value.trim()).then(megjelenit);
-  }, 2000);
+// Automatikus frissítés: a gomb KAPCSOLÓ (aria-pressed), és egyszerre legfeljebb
+// EGY időzítő fut. Az azonosítóját eltesszük, hogy clearInterval-lal leállíthassuk.
+const frissitGomb = document.getElementById('frissit');
+let frissitoIdozito = null;
+
+frissitGomb.addEventListener('click', () => {
+  if (frissitoIdozito === null) {
+    frissitoIdozito = setInterval(() => {
+      if (document.hidden) return;   // nem látható lapon felesleges frissíteni
+      keres(input.value.trim());     // ugyanaz az út: hibakezelés + „legutolsó nyer”
+    }, 2000);
+    frissitGomb.setAttribute('aria-pressed', 'true');
+  } else {
+    clearInterval(frissitoIdozito);
+    frissitoIdozito = null;
+    frissitGomb.setAttribute('aria-pressed', 'false');
+  }
 });
 </script>
 </body>
