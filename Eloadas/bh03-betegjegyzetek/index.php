@@ -18,7 +18,11 @@ if (isset($_GET['torol'])) {
         http_response_code(404);
         exit('Nincs ilyen jegyzet (vagy nem a tiéd).');
     }
-    header('Location: index.php');
+    // 303 See Other: "most kérd le ezt a címet GET-tel".
+    // Az exit KÖTELEZŐ: a header() csak beállít egy fejlécet, a szkript magától
+    // tovább futna (lekérdezés + az egész oldal kiírása az átirányító válaszba).
+    header('Location: index.php', true, 303);
+    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
