@@ -66,7 +66,7 @@ async function keres(q) {
     // (await nélkül a try már rég véget ért, mire a szerverhiba megérkezik.)
     const nevek = await fakeFetch(q);
     if (id !== utolsoKeres) return;   // közben indult újabb keresés → ez a válasz elavult
-    megjelenit(nevek);
+    megjelenit(nevek, id);
   } catch (e) {
     if (id !== utolsoKeres) return;   // egy régi kérés hibája se írja felül az újat
     document.getElementById('talalatok').textContent = '';
@@ -75,7 +75,7 @@ async function keres(q) {
   }
 }
 
-function megjelenit(nevek) {
+function megjelenit(nevek, id) {
   const ul = document.getElementById('talalatok');
   ul.textContent = '';
   nevek.forEach(n => {
@@ -84,12 +84,16 @@ function megjelenit(nevek) {
     ul.appendChild(li);
   });
   allapot.textContent = nevek.length + ' találat';
-  osszesit(nevek);
+  osszesit(nevek, id).catch(e => { allapot.textContent = 'Hiba az árak lekérésekor: ' + e.message; });
 }
 
-async function osszesit(nevek) {
-  let osszeg = 0;
-  nevek.forEach(async n => { osszeg += await fakePrice(n); });
+async function osszesit(nevek, id) {
+  // A forEach NEM várja meg az async visszahívásokat: azonnal továbblép, így a
+  // kiírás még 0-val futott le. Helyette: map → Promise-ok tömbje, és a
+  // Promise.all megvárja MINDET (közben párhuzamosan futnak).
+  const arak = await Promise.all(nevek.map(fakePrice));
+  if (id !== utolsoKeres) return;   // közben új keresés jött → ne írjuk felül az újabb összeget
+  const osszeg = arak.reduce((a, b) => a + b, 0);
   document.getElementById('osszeg').textContent = osszeg;
 }
 
