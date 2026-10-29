@@ -38,10 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-$q = $_GET['q'] ?? '';
-$sql = "SELECT * FROM jegyzetek WHERE orvos_id = " . $_SESSION['orvos_id']
-     . " AND beteg LIKE '%" . $q . "%' ORDER BY id DESC";
-$sorok = $pdo->query($sql)->fetchAll();
+// Az is_string azért kell, mert a böngészőből tömb is jöhet (?q[]=x).
+$q = is_string($_GET['q'] ?? null) ? $_GET['q'] : '';
+// Prepared statement: a keresőszó ADAT, nem SQL. A % jeleket a PHP-ban fűzzük hozzá,
+// az SQL-ben csak a ? helyőrző áll – így a ' OR 1=1 -- is csak egy (nem létező) betegnév.
+$stmt = $pdo->prepare('SELECT * FROM jegyzetek WHERE orvos_id = ? AND beteg LIKE ? ORDER BY id DESC');
+$stmt->execute([$_SESSION['orvos_id'], '%' . $q . '%']);
+$sorok = $stmt->fetchAll();
 ?>
 <!doctype html>
 <html lang="hu">
