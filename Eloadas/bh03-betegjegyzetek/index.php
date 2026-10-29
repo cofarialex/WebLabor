@@ -9,8 +9,15 @@ if (isset($_GET['torol'])) {
         exit('Hibás jegyzet-azonosító.');
     }
     // Prepared statement: az id ADATKÉNT megy az adatbázishoz, sosem válhat SQL-kóddá.
-    $stmt = $pdo->prepare('DELETE FROM jegyzetek WHERE id = ?');
-    $stmt->execute([$id]);
+    // AND orvos_id = ? → csak a SAJÁT jegyzetét törölheti az orvos (IDOR elleni védelem).
+    // Az orvos azonosítója a munkamenetből jön, nem a kérésből.
+    $stmt = $pdo->prepare('DELETE FROM jegyzetek WHERE id = ? AND orvos_id = ?');
+    $stmt->execute([$id, $_SESSION['orvos_id']]);
+    if ($stmt->rowCount() === 0) {
+        // Nem áruljuk el, hogy a jegyzet létezik-e – csak annyit, hogy itt nincs ilyen.
+        http_response_code(404);
+        exit('Nincs ilyen jegyzet (vagy nem a tiéd).');
+    }
     header('Location: index.php');
 }
 
