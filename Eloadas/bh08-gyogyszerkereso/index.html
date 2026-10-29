@@ -51,7 +51,7 @@ function debounce(fn, ms) {
 
 input.addEventListener('input', debounce(() => keres(input.value.trim()), 300));
 
-function keres(q) {
+async function keres(q) {
   const id = ++utolsoKeres;
   if (q === '') {                 // üres mezőre nem kérdezzük a szervert, csak ürítünk
     document.getElementById('talalatok').textContent = '';
@@ -61,11 +61,16 @@ function keres(q) {
   }
   allapot.textContent = 'Keresés…';
   try {
-    fakeFetch(q).then(nevek => {
-      if (id !== utolsoKeres) return;   // közben indult újabb keresés → ez a válasz elavult
-      megjelenit(nevek);
-    });
+    // await: itt a függvény megvárja, hogy a Promise teljesüljön VAGY elutasuljon.
+    // Elutasításkor a hiba ITT dobódik – ezért tudja a catch elkapni.
+    // (await nélkül a try már rég véget ért, mire a szerverhiba megérkezik.)
+    const nevek = await fakeFetch(q);
+    if (id !== utolsoKeres) return;   // közben indult újabb keresés → ez a válasz elavult
+    megjelenit(nevek);
   } catch (e) {
+    if (id !== utolsoKeres) return;   // egy régi kérés hibája se írja felül az újat
+    document.getElementById('talalatok').textContent = '';
+    document.getElementById('osszeg').textContent = '0';
     allapot.textContent = 'Hiba: ' + e.message;
   }
 }
