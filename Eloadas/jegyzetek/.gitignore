@@ -1,0 +1,5 @@
+# Az adatbázis helyi adat, nem kód: mindenki gépén magától létrejön.
+jegyzetek.sqlite
+
+# macOS rendszerfájl
+.DS_Store

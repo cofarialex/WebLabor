@@ -1,0 +1,173 @@
+/* style.css – a Jegyzetek kinézete (a Vendégkönyv stílusára építve).
+   A színek változókban (custom property) vannak, így egy helyen átírhatók,
+   és sötét módban automatikusan átváltanak. */
+
+:root {
+  --hatter: #f4f6f5;
+  --kartya: #ffffff;
+  --szoveg: #17201c;
+  --halvany: #56655e;
+  --vonal: #cdd8d2;
+  --kiemelo: #0b7a63;
+  --ok-hatter: #dcf2e4;
+  --ok-szoveg: #145c33;
+  --hiba-hatter: #fbe2de;
+  --hiba-szoveg: #9b2a1f;
+  --veszely: #ba3427;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hatter: #0e1513;
+    --kartya: #17201c;
+    --szoveg: #e3ede8;
+    --halvany: #9aaca4;
+    --vonal: #2c3b35;
+    --kiemelo: #3cc4a1;
+    --ok-hatter: #113321;
+    --ok-szoveg: #8fe3b0;
+    --hiba-hatter: #3e1714;
+    --hiba-szoveg: #f6a59c;
+    --veszely: #f2776b;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--hatter);
+  color: var(--szoveg);
+  font: 17px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+h1 { margin: 0; font-size: 2rem; }
+.alcim { margin-top: 4px; color: var(--halvany); }
+
+/* --- Visszajelző dobozok (siker / hiba) --- */
+.doboz {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+.doboz p { margin: 0; }
+.doboz ul { margin: 6px 0 0; padding-left: 20px; }
+.ok   { background: var(--ok-hatter);   color: var(--ok-szoveg); }
+.hiba { background: var(--hiba-hatter); color: var(--hiba-szoveg); }
+
+/* --- Űrlap --- */
+.urlap {
+  display: grid;
+  gap: 6px;
+  background: var(--kartya);
+  border: 1px solid var(--vonal);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+label { font-weight: 600; margin-top: 8px; }
+
+input, textarea {
+  font: inherit;
+  color: inherit;
+  background: var(--hatter);
+  border: 1px solid var(--vonal);
+  border-radius: 8px;
+  padding: 10px 12px;
+  width: 100%;
+}
+textarea { resize: vertical; }
+
+/* Billentyűzetes navigációnál jól látsszon, hol áll a fókusz. */
+input:focus-visible, textarea:focus-visible, button:focus-visible {
+  outline: 3px solid var(--kiemelo);
+  outline-offset: 2px;
+}
+
+.segito { margin: 0; font-size: .875rem; color: var(--halvany); }
+
+button {
+  justify-self: start;
+  margin-top: 12px;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--kiemelo);
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+@media (prefers-color-scheme: dark) { button { color: #06231b; } }
+
+a { color: var(--kiemelo); }
+
+/* --- Fejléc: navigáció --- */
+.fejlec {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.fejlec a:first-child { font-weight: 700; text-decoration: none; color: var(--szoveg); }
+
+/* Link, ami gombnak néz ki (az „+ Új jegyzet” egy GET-link, nem űrlap). */
+.gomb {
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  background: var(--kiemelo);
+  border-radius: 8px;
+  padding: 8px 16px;
+}
+@media (prefers-color-scheme: dark) { .gomb { color: #06231b; } }
+
+.darab { color: var(--halvany); font-weight: 400; }
+.gombsor { display: flex; align-items: center; gap: 16px; }
+.gombsor button { margin-top: 12px; }
+.gombsor a { margin-top: 12px; }
+
+/* Mezőhöz tartozó hibaüzenet + a hibás mező piros kerete */
+.mezohiba { margin: 0; font-size: .875rem; color: var(--hiba-szoveg); }
+[aria-invalid="true"] { border-color: var(--veszely); }
+
+/* --- Jegyzetek a listában --- */
+.jegyzet {
+  background: var(--kartya);
+  border: 1px solid var(--vonal);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 16px 0;
+}
+.jegyzet h2 { margin: 0; font-size: 1.15rem; overflow-wrap: anywhere; }
+.jegyzet p { margin: 6px 0 10px; overflow-wrap: anywhere; } /* a nagyon hosszú szó se lógjon ki */
+.jegyzet footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.jegyzet small { color: var(--halvany); }
+.muveletek { display: flex; align-items: center; gap: 14px; }
+
+/* A törlés űrlapja egy sorban maradjon a Szerkesztés linkkel. */
+form.inline { display: inline; margin: 0; }
+button.veszely {
+  margin: 0;
+  padding: 4px 12px;
+  font-size: .9rem;
+  color: var(--veszely);
+  background: transparent;
+  border: 1px solid var(--veszely);
+}
+@media (prefers-color-scheme: dark) { button.veszely { color: var(--veszely); } }
+
+.ures { color: var(--halvany); }
