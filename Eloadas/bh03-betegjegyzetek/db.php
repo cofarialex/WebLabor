@@ -1,8 +1,11 @@
 <?php
-// Séma (egyszer futtasd):
+// Séma (egyszer futtasd, lásd schema.sql):
 // CREATE TABLE jegyzetek (id INT AUTO_INCREMENT PRIMARY KEY, orvos_id INT NOT NULL,
 //   beteg VARCHAR(100) NOT NULL, szoveg TEXT NOT NULL, letrehozva TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
-$pdo = new PDO('mysql:host=localhost;dbname=rendelo;charset=utf8mb4', 'rendelo_app', getenv('DB_PASS') ?: '');
+// A kapcsolat címe (DSN) a DB_DSN környezeti változóval felülírható: a teszt.sh így
+// futtatja az alkalmazást egy ideiglenes SQLite adatbázison, MySQL nélkül.
+$dsn = getenv('DB_DSN') ?: 'mysql:host=localhost;dbname=rendelo;charset=utf8mb4';
+$pdo = new PDO($dsn, 'rendelo_app', getenv('DB_PASS') ?: '');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 session_start();

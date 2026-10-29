@@ -1,0 +1,5 @@
+# Helyi adatbázis-fájlok (a teszt.sh ideiglenes SQLite-ja) – adat, nem kód.
+*.sqlite
+
+# macOS rendszerfájl
+.DS_Store
