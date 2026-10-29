@@ -20,3 +20,12 @@ session_start([
 // Demó: a belépés egyszerűsítve – ?orvos=2 paraméterrel válthatsz orvost
 if (isset($_GET['orvos'])) { $_SESSION['orvos_id'] = (int) $_GET['orvos']; }
 $_SESSION['orvos_id'] = $_SESSION['orvos_id'] ?? 1;
+
+// e() – szöveg biztonságos kiírása HTML-be (XSS elleni védelem).
+// A < > & " ' karaktereket HTML-entitásra cseréli (&lt; &gt; &amp; &quot; &#039;),
+// így a felhasználó szövege mindig SZÖVEG marad, sosem válik HTML-lé vagy JavaScriptté.
+// ENT_QUOTES: az idézőjeleket is átírja → attribútumból (value="...") sem lehet kitörni.
+function e($szoveg): string
+{
+    return htmlspecialchars((string) $szoveg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}

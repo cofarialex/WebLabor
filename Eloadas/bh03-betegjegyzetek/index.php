@@ -53,7 +53,7 @@ $sorok = $stmt->fetchAll();
 <h1>Betegjegyzetek (orvos #<?= (int) $_SESSION['orvos_id'] ?>)</h1>
 <form method="get">
   <label for="q">Keresés betegnévre</label>
-  <input id="q" name="q" value="<?= $q ?>">
+  <input id="q" name="q" value="<?= e($q) ?>">
   <button>Keresés</button>
 </form>
 <ul>
