@@ -131,6 +131,25 @@ switch ($m) {
         }
         break;
 
+    // ---------- DELETE: törlés, CSAK POST-tal ----------
+    case 'torol':
+        if (!$post) {
+            // 405 Method Not Allowed + Allow fejléc: megmondjuk, melyik metódus lenne jó.
+            header('Allow: POST');
+            hiba(405, 'Törölni csak POST kéréssel lehet.');
+        }
+        if ($id === null) {
+            hiba(404, 'Nincs ilyen jegyzet.');
+        }
+        $stmt = db()->prepare('DELETE FROM jegyzet WHERE id = ?');
+        $stmt->execute([$id]);
+        // rowCount(): hány sort érintett a DELETE. 0 → nem is létezett ilyen jegyzet.
+        if ($stmt->rowCount() === 0) {
+            hiba(404, 'Nincs ilyen jegyzet.');
+        }
+        flash('Jegyzet törölve.');
+        redirect('jegyzetek.php');
+
     default:
         hiba(404, 'Ismeretlen oldal.');
 }
@@ -177,6 +196,13 @@ $uzenet = flash();
         <span class="muveletek">
           <!-- Szerkesztés: sima link, mert csak MEGJELENÍT (GET). -->
           <a href="jegyzetek.php?m=szerkeszt&amp;id=<?= (int) $j['id'] ?>">Szerkesztés</a>
+          <!-- Törlés: kis POST-űrlap, mert MÓDOSÍT. Az id és a CSRF-token rejtett mezőben utazik. -->
+          <form method="post" action="jegyzetek.php?m=torol" class="inline"
+                onsubmit="return confirm('Biztosan törlöd ezt a jegyzetet?')">
+            <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="id" value="<?= (int) $j['id'] ?>">
+            <button type="submit" class="veszely">Törlés</button>
+          </form>
         </span>
       </footer>
     </article>
