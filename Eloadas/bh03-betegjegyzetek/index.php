@@ -2,7 +2,15 @@
 require 'db.php';
 
 if (isset($_GET['torol'])) {
-    $pdo->exec('DELETE FROM jegyzetek WHERE id = ' . $_GET['torol']);
+    // Csak pozitív egész számot fogadunk el azonosítónak – a "0 OR 1=1" már itt elakad.
+    $id = filter_var($_GET['torol'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($id === false) {
+        http_response_code(400);   // 400 Bad Request
+        exit('Hibás jegyzet-azonosító.');
+    }
+    // Prepared statement: az id ADATKÉNT megy az adatbázishoz, sosem válhat SQL-kóddá.
+    $stmt = $pdo->prepare('DELETE FROM jegyzetek WHERE id = ?');
+    $stmt->execute([$id]);
     header('Location: index.php');
 }
 
