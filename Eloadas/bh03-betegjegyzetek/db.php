@@ -8,7 +8,15 @@ $dsn = getenv('DB_DSN') ?: 'mysql:host=localhost;dbname=rendelo;charset=utf8mb4'
 $pdo = new PDO($dsn, 'rendelo_app', getenv('DB_PASS') ?: '');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-session_start();
+// A munkamenet-süti beállításai:
+//   SameSite=Lax → más oldalról indított POST-hoz és <img>-kéréshez a böngésző nem küldi el
+//   HttpOnly     → JavaScript nem olvashatja (egy XSS nem tudja ellopni)
+//   strict mode  → csak a szerver által kiadott munkamenet-azonosítót fogadjuk el
+session_start([
+    'cookie_samesite' => 'Lax',
+    'cookie_httponly' => true,
+    'use_strict_mode' => true,
+]);
 // Demó: a belépés egyszerűsítve – ?orvos=2 paraméterrel válthatsz orvost
 if (isset($_GET['orvos'])) { $_SESSION['orvos_id'] = (int) $_GET['orvos']; }
 $_SESSION['orvos_id'] = $_SESSION['orvos_id'] ?? 1;
