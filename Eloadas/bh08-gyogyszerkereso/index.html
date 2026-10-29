@@ -35,11 +35,19 @@ function fakePrice(nev) {
 const input = document.getElementById('q');
 const allapot = document.getElementById('allapot');
 
+// „A legutolsó kérés nyer”: minden keresés kap egy sorszámot. Ha a válasz
+// megérkezésekor már van újabb keresés, a régi (elavult) választ eldobjuk.
+let utolsoKeres = 0;
+
 input.addEventListener('input', () => {
   const q = input.value.trim();
+  const id = ++utolsoKeres;
   allapot.textContent = 'Keresés…';
   try {
-    fakeFetch(q).then(megjelenit);
+    fakeFetch(q).then(nevek => {
+      if (id !== utolsoKeres) return;   // közben indult újabb keresés → ez a válasz elavult
+      megjelenit(nevek);
+    });
   } catch (e) {
     allapot.textContent = 'Hiba: ' + e.message;
   }
