@@ -1,0 +1,5 @@
+# Az adatbázis helyi adat: első indításkor magától létrejön a schema.sql + seed.sql alapján.
+konyvtar.db
+
+# macOS rendszerfájl
+.DS_Store
