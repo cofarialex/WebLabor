@@ -1,0 +1,139 @@
+/* style.css – a Kari könyvtár kinézete (a Jegyzetek stílusára építve, sötét móddal). */
+
+:root {
+  --hatter: #f4f6f5;
+  --kartya: #ffffff;
+  --szoveg: #17201c;
+  --halvany: #56655e;
+  --vonal: #cdd8d2;
+  --kiemelo: #0b7a63;
+  --ok-hatter: #dcf2e4;
+  --ok-szoveg: #145c33;
+  --hiba-hatter: #fbe2de;
+  --hiba-szoveg: #9b2a1f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hatter: #0e1513;
+    --kartya: #17201c;
+    --szoveg: #e3ede8;
+    --halvany: #9aaca4;
+    --vonal: #2c3b35;
+    --kiemelo: #3cc4a1;
+    --ok-hatter: #113321;
+    --ok-szoveg: #8fe3b0;
+    --hiba-hatter: #3e1714;
+    --hiba-szoveg: #f6a59c;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--hatter);
+  color: var(--szoveg);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+a { color: var(--kiemelo); }
+h1 { margin: 8px 0 16px; font-size: 1.8rem; }
+h2 { font-size: 1.2rem; margin: 28px 0 10px; }
+
+/* --- Fejléc és menü --- */
+.fejlec {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 12px 16px;
+  background: var(--kartya);
+  border-bottom: 1px solid var(--vonal);
+}
+.logo { font-weight: 700; color: var(--szoveg); text-decoration: none; }
+.fejlec nav { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+
+main { max-width: 900px; margin: 0 auto; padding: 16px 16px 64px; }
+
+/* --- Üzenetek --- */
+.doboz { padding: 10px 14px; border-radius: 8px; margin: 12px 0; }
+.ok   { background: var(--ok-hatter);   color: var(--ok-szoveg); }
+.hiba { background: var(--hiba-hatter); color: var(--hiba-szoveg); }
+.halvany { color: var(--halvany); }
+.zold  { color: var(--ok-szoveg); font-weight: 600; }
+.piros { color: var(--hiba-szoveg); font-weight: 600; }
+.kicsi { font-size: .875rem; }
+
+/* --- Űrlapok --- */
+.urlap, .kartya {
+  display: grid;
+  gap: 6px;
+  background: var(--kartya);
+  border: 1px solid var(--vonal);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+.kartya { display: block; }
+.kartya h2 { margin-top: 0; }
+.urlap h2 { margin: 0 0 4px; }
+.keskeny { max-width: 380px; }
+label { font-weight: 600; margin-top: 6px; }
+
+input, select {
+  font: inherit;
+  color: inherit;
+  background: var(--hatter);
+  border: 1px solid var(--vonal);
+  border-radius: 8px;
+  padding: 9px 12px;
+  width: 100%;
+}
+
+input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 3px solid var(--kiemelo);
+  outline-offset: 2px;
+}
+
+button {
+  justify-self: start;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--kiemelo);
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 18px;
+  cursor: pointer;
+}
+@media (prefers-color-scheme: dark) { button { color: #06231b; } }
+
+.kereso .sor { display: flex; gap: 8px; }
+form.inline { display: inline; margin: 0; }
+button.link { background: none; color: var(--kiemelo); padding: 0; font-weight: 400; text-decoration: underline; }
+.kicsi-gomb { padding: 4px 10px; font-size: .875rem; }
+
+/* --- Táblázatok --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--kartya);
+  border: 1px solid var(--vonal);
+  border-radius: 12px;
+  overflow: hidden;
+}
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--vonal); vertical-align: top; }
+th { font-size: .875rem; color: var(--halvany); }
+tbody tr:last-child td { border-bottom: 0; }
+
+/* Keskeny képernyőn a táblázat vízszintesen görgethető, ne lógjon ki az oldalból. */
+@media (max-width: 640px) {
+  table { display: block; overflow-x: auto; }
+}
+
+/* --- Lapozó --- */
+.lapozo { display: flex; gap: 6px; margin-top: 16px; }
+.lapozo a, .lapozo span { padding: 4px 10px; border: 1px solid var(--vonal); border-radius: 6px; text-decoration: none; }
+.lapozo span { background: var(--kiemelo); color: #fff; border-color: var(--kiemelo); }
